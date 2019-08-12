@@ -1,0 +1,18 @@
+{
+  "name": "redux-egghead",
+  "version": "1.0.0",
+  "description": "",
+  "main": "avoiding-array-mutations.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "deepfreeze": "^2.0.0",
+    "jest": "^24.8.0"
+  },
+  "dependencies": {
+    "redux": "^4.0.4"
+  }
+}

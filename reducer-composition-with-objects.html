@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Reducer composition with object</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.4/redux.js"></script>
+</head>
+<body>
+	<h1>Reducer composition with object</h1>
+	<script type="text/javascript">
+		// const deepfreeze = require('deepfreeze');
+
+		const createStore = Redux.createStore;
+
+		const todoItem = (state, action) => {
+			switch(action.type) {
+				case 'ADD_TASK':
+					return {
+							id: action.id,
+							task: action.task,
+							complete: false
+					};
+				case 'TOGGLE_TASK':
+					if (state.id !== action.id) {
+						return state;
+					}
+					return {
+						...state,
+						complete: !state.complete
+					}
+					break;
+				default:
+					return state;
+			}
+		};
+
+		const todoList = (state = [], action) => {
+
+			switch(action.type) {
+				case 'ADD_TASK':
+					return [
+						...state,
+						todoItem(undefined, action)
+					];
+				case 'TOGGLE_TASK':
+					return [
+						...state.map(task => todoItem(task, action))
+					];
+				default:
+					return state;
+			}
+
+		};
+
+		const visibilityFilter = (status = 'SHOW_ALL', action) => {
+			switch (action.type) {
+				case 'SET_VISIBILITY_FILTER':
+					return action.filter;
+				default:
+					return status;
+			}
+		};
+
+		/* const todoListApp = (state = {}, action) => {
+			return {
+				todos: todoList(
+					state.todos,
+					action
+				),
+				visibilityFilter: visibilityFilter(state.visibilityFilter, action)
+			}
+		}; */
+
+		// Implementing combineReducers() from Scratch
+		const combineReducers = (reducers) => {
+
+			return (state = {}, action) => {
+				return Object.keys(reducers).reduce(
+					(nextState, key) => {
+						nextState[key] = reducers[key](
+							state[key],
+							action
+						);
+						return nextState;
+					},
+					{}
+				);
+			};
+		};
+
+		// Redux: Reducer Composition with combineReducers()
+		// const combineReducers = Redux.combineReducers;
+
+		const todoListApp = combineReducers({
+			todos: todoList,
+			visibilityFilter
+		});
+
+
+		const storeApp = createStore(todoListApp);
+
+		console.log("start app");
+		console.log(storeApp.getState());
+
+		storeApp.dispatch({
+			type: 'ADD_TASK',
+			id: 0,
+			task: 'learn reack'
+		});
+
+		console.log("fist task added");
+		console.log(storeApp.getState());
+
+		storeApp.dispatch({
+			type: 'ADD_TASK',
+			id: 1,
+			task: 'learn redux'
+		});
+
+		console.log("second task added");
+		console.log(storeApp.getState());
+
+		storeApp.dispatch({
+			type: 'TOGGLE_TASK',
+			id: 1
+		});
+
+		console.log("Toggle task");
+		console.log(storeApp.getState());
+
+		console.log("show completed");
+
+		storeApp.dispatch({
+			type: 'SET_VISIBILITY_FILTER',
+			filter: 'SHOW_COMPLETED'
+		});
+
+		console.log(storeApp.getState());
+
+
+	</script>
+</body>
+</html>
+
+
+
+
+
