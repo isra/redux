@@ -162,39 +162,56 @@ const Footer = () => (
   </div>
 );
 
-const App = ({ todos, visibilityFilter }) => (
+const Header = () => {
+  return (
+    <div>
+      <HeaderTodo
+        onClickAddHandler={task =>
+          storeApp.dispatch({
+            type: "ADD_TASK",
+            id: indexTask++,
+            task
+          })
+        }
+      />
+    </div>
+  );
+};
+
+class ToDo extends React.Component {
+  componentWillMount() {
+    this.subscribe = storeApp.subscribe(() => {
+      this.forceUpdate();
+    });
+  }
+
+  componentWillUnmount() {
+    this.subscribe();
+  }
+
+  render() {
+    const state = storeApp.getState();
+
+    return (
+      <Tasks
+        todos={getListFilterTodo(state.todos, state.visibilityFilter)}
+        onClickHandler={id =>
+          storeApp.dispatch({
+            type: "TOGGLE_TASK",
+            id
+          })
+        }
+      />
+    );
+  }
+}
+
+const App = () => (
   <div>
-    <HeaderTodo
-      onClickAddHandler={task =>
-        storeApp.dispatch({
-          type: "ADD_TASK",
-          id: indexTask++,
-          task
-        })
-      }
-    />
-    <Tasks
-      todos={getListFilterTodo(todos, visibilityFilter)}
-      onClickHandler={id =>
-        storeApp.dispatch({
-          type: "TOGGLE_TASK",
-          id
-        })
-      }
-    />
+    <Header />
+    <ToDo />
     <Footer />
   </div>
 );
 
-const render = () => {
-  console.log(storeApp.getState());
-
-  ReactDOM.render(
-    <App {...storeApp.getState()} />,
-    document.getElementById("root")
-  );
-};
-
-storeApp.subscribe(render);
-
-render();
+ReactDOM.render(<App />, document.getElementById("root"));
