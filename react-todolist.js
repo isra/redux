@@ -42,17 +42,6 @@ const visibilityFilter = (status = "SHOW_ALL", action) => {
   }
 };
 
-// Redux: Reducer Composition with combineReducers()
-const combineReducers = Redux.combineReducers;
-
-const todoListApp = combineReducers({
-  todos: todoList,
-  visibilityFilter
-});
-
-const storeApp = createStore(todoListApp);
-let indexTask = 0;
-
 const Link = ({ active, children, onClickFilter }) => {
   if (active) {
     return <span>{children}</span>;
@@ -73,6 +62,7 @@ const Link = ({ active, children, onClickFilter }) => {
 
 class FilterLink extends React.Component {
   componentWillMount() {
+    const { storeApp } = this.props;
     this.unsubscribe = storeApp.subscribe(() => {
       this.forceUpdate();
     });
@@ -84,6 +74,7 @@ class FilterLink extends React.Component {
 
   render() {
     const props = this.props;
+    const { storeApp } = props;
     const state = storeApp.getState();
 
     return (
@@ -154,15 +145,22 @@ const HeaderTodo = ({ onClickAddHandler }) => {
   );
 };
 
-const Footer = () => (
+const Footer = ({ storeApp }) => (
   <div>
-    Show <FilterLink filter={"SHOW_ALL"}>All</FilterLink>{" "}
-    <FilterLink filter={"SHOW_ACTIVE"}>Active</FilterLink>{" "}
-    <FilterLink filter={"SHOW_COMPLETED"}>Completed</FilterLink>
+    Show{" "}
+    <FilterLink filter={"SHOW_ALL"} storeApp={storeApp}>
+      All
+    </FilterLink>{" "}
+    <FilterLink filter={"SHOW_ACTIVE"} storeApp={storeApp}>
+      Active
+    </FilterLink>{" "}
+    <FilterLink filter={"SHOW_COMPLETED"} storeApp={storeApp}>
+      Completed
+    </FilterLink>
   </div>
 );
 
-const Header = () => {
+const Header = ({ storeApp }) => {
   return (
     <div>
       <HeaderTodo
@@ -180,6 +178,7 @@ const Header = () => {
 
 class ToDo extends React.Component {
   componentWillMount() {
+    const { storeApp } = this.props;
     this.subscribe = storeApp.subscribe(() => {
       this.forceUpdate();
     });
@@ -190,6 +189,7 @@ class ToDo extends React.Component {
   }
 
   render() {
+    const { storeApp } = this.props;
     const state = storeApp.getState();
 
     return (
@@ -206,12 +206,25 @@ class ToDo extends React.Component {
   }
 }
 
-const App = () => (
+const App = ({ storeApp }) => (
   <div>
-    <Header />
-    <ToDo />
-    <Footer />
+    <Header storeApp={storeApp} />
+    <ToDo storeApp={storeApp} />
+    <Footer storeApp={storeApp} />
   </div>
 );
 
-ReactDOM.render(<App />, document.getElementById("root"));
+// Redux: Reducer Composition with combineReducers()
+const combineReducers = Redux.combineReducers;
+const todoListApp = combineReducers({
+  todos: todoList,
+  visibilityFilter
+});
+
+// const storeApp = createStore(todoListApp);
+let indexTask = 0;
+
+ReactDOM.render(
+  <App storeApp={createStore(todoListApp)} />,
+  document.getElementById("root")
+);
