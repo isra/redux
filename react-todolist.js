@@ -62,7 +62,7 @@ const Link = ({ active, children, onClickFilter }) => {
 
 class FilterLink extends React.Component {
   componentWillMount() {
-    const { storeApp } = this.props;
+    const { storeApp } = this.context;
     this.unsubscribe = storeApp.subscribe(() => {
       this.forceUpdate();
     });
@@ -74,7 +74,7 @@ class FilterLink extends React.Component {
 
   render() {
     const props = this.props;
-    const { storeApp } = props;
+    const { storeApp } = this.context;
     const state = storeApp.getState();
 
     return (
@@ -145,40 +145,38 @@ const HeaderTodo = ({ onClickAddHandler }) => {
   );
 };
 
-const Footer = ({ storeApp }) => (
+const Footer = () => (
   <div>
-    Show{" "}
-    <FilterLink filter={"SHOW_ALL"} storeApp={storeApp}>
-      All
-    </FilterLink>{" "}
-    <FilterLink filter={"SHOW_ACTIVE"} storeApp={storeApp}>
-      Active
-    </FilterLink>{" "}
-    <FilterLink filter={"SHOW_COMPLETED"} storeApp={storeApp}>
-      Completed
-    </FilterLink>
+    Show <FilterLink filter={"SHOW_ALL"}>All</FilterLink>{" "}
+    <FilterLink filter={"SHOW_ACTIVE"}>Active</FilterLink>{" "}
+    <FilterLink filter={"SHOW_COMPLETED"}>Completed</FilterLink>
   </div>
 );
 
-const Header = ({ storeApp }) => {
+const Header = () => {
   return (
-    <div>
-      <HeaderTodo
-        onClickAddHandler={task =>
-          storeApp.dispatch({
-            type: "ADD_TASK",
-            id: indexTask++,
-            task
-          })
-        }
-      />
-    </div>
+    <Consumer>
+      {value => {
+        const { storeApp } = value;
+        return (
+          <HeaderTodo
+            onClickAddHandler={task =>
+              storeApp.dispatch({
+                type: "ADD_TASK",
+                id: indexTask++,
+                task
+              })
+            }
+          />
+        );
+      }}
+    </Consumer>
   );
 };
 
 class ToDo extends React.Component {
   componentWillMount() {
-    const { storeApp } = this.props;
+    const { storeApp } = this.context;
     this.subscribe = storeApp.subscribe(() => {
       this.forceUpdate();
     });
@@ -189,7 +187,7 @@ class ToDo extends React.Component {
   }
 
   render() {
-    const { storeApp } = this.props;
+    const { storeApp } = this.context;
     const state = storeApp.getState();
 
     return (
@@ -206,11 +204,34 @@ class ToDo extends React.Component {
   }
 }
 
-const App = ({ storeApp }) => (
+/**
+  Context
+*/
+const Context = React.createContext();
+class Provider extends React.Component {
+  render() {
+    return (
+      <Context.Provider value={this.props}>
+        {this.props.children}
+      </Context.Provider>
+    );
+  }
+}
+const Consumer = Context.Consumer;
+
+// Add context to components
+ToDo.contextType = Consumer;
+FilterLink.contextType = Consumer;
+
+/**
+  End Context
+*/
+
+const App = () => (
   <div>
-    <Header storeApp={storeApp} />
-    <ToDo storeApp={storeApp} />
-    <Footer storeApp={storeApp} />
+    <Header />
+    <ToDo />
+    <Footer />
   </div>
 );
 
@@ -225,6 +246,8 @@ const todoListApp = combineReducers({
 let indexTask = 0;
 
 ReactDOM.render(
-  <App storeApp={createStore(todoListApp)} />,
+  <Provider storeApp={createStore(todoListApp)}>
+    <App />
+  </Provider>,
   document.getElementById("root")
 );
