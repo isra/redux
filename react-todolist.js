@@ -62,8 +62,8 @@ const Link = ({ active, children, onClickFilter }) => {
 
 class FilterLink extends React.Component {
   componentWillMount() {
-    const { storeApp } = this.context;
-    this.unsubscribe = storeApp.subscribe(() => {
+    const { store } = this.context;
+    this.unsubscribe = store.subscribe(() => {
       this.forceUpdate();
     });
   }
@@ -74,14 +74,14 @@ class FilterLink extends React.Component {
 
   render() {
     const props = this.props;
-    const { storeApp } = this.context;
-    const state = storeApp.getState();
+    const { store } = this.context;
+    const state = store.getState();
 
     return (
       <Link
         active={props.filter === state.visibilityFilter}
         onClickFilter={() =>
-          storeApp.dispatch({
+          store.dispatch({
             type: "SET_VISIBILITY_FILTER",
             filter: props.filter
           })
@@ -156,8 +156,8 @@ const Footer = () => (
 const Header = () => {
   return (
     <Consumer>
-      {value => {
-        const { storeApp } = value;
+      {store => {
+        const storeApp = store.store;
         return (
           <HeaderTodo
             onClickAddHandler={task =>
@@ -176,8 +176,8 @@ const Header = () => {
 
 class ToDo extends React.Component {
   componentWillMount() {
-    const { storeApp } = this.context;
-    this.subscribe = storeApp.subscribe(() => {
+    const { store } = this.context;
+    this.subscribe = store.subscribe(() => {
       this.forceUpdate();
     });
   }
@@ -187,14 +187,14 @@ class ToDo extends React.Component {
   }
 
   render() {
-    const { storeApp } = this.context;
-    const state = storeApp.getState();
+    const { store } = this.context;
+    const state = store.getState();
 
     return (
       <Tasks
         todos={getListFilterTodo(state.todos, state.visibilityFilter)}
         onClickHandler={id =>
-          storeApp.dispatch({
+          store.dispatch({
             type: "TOGGLE_TASK",
             id
           })
@@ -207,14 +207,15 @@ class ToDo extends React.Component {
 /**
   Context
 */
+/*
 const Context = React.createContext();
+
 class Provider extends React.Component {
+
   render() {
-    return (
-      <Context.Provider value={this.props}>
-        {this.props.children}
+    return <Context.Provider value={this.props}>
+      {this.props.children}
       </Context.Provider>
-    );
   }
 }
 const Consumer = Context.Consumer;
@@ -222,6 +223,14 @@ const Consumer = Context.Consumer;
 // Add context to components
 ToDo.contextType = Consumer;
 FilterLink.contextType = Consumer;
+*/
+
+const Provider = ReactRedux.Provider;
+const ReactReduxContext = ReactRedux.ReactReduxContext;
+const Consumer = ReactReduxContext.Consumer;
+ToDo.contextType = Consumer;
+FilterLink.contextType = Consumer;
+// FilterLink.contextType = Consumer;
 
 /**
   End Context
@@ -246,7 +255,7 @@ const todoListApp = combineReducers({
 let indexTask = 0;
 
 ReactDOM.render(
-  <Provider storeApp={createStore(todoListApp)}>
+  <Provider store={createStore(todoListApp)}>
     <App />
   </Provider>,
   document.getElementById("root")
